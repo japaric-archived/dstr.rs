@@ -40,7 +40,9 @@ impl fmt::Show for Str {
 
 // XXX Work around the lack of `Str` literals
 pub fn s<'a>(s: &'a str) -> &'a Str {
-    unsafe { mem::transmute(s) }
+    use core::str::StrPrelude;
+
+    Str::from_utf8(s.as_bytes()).unwrap()
 }
 
 // XXX Renamed std::str::Str to AsStr
@@ -70,8 +72,21 @@ macro_rules! utf8_is_cont_byte(
     ($byte:expr) => (($byte & !CONT_MASK) == TAG_CONT_U8)
 )
 
-// XXX Remove StrPrelude extension trait in favor of inherent methods
 impl Str {
+    // XXX Convert the `from_utf8` free function into a constructor
+    /// Converts a vector to a string slice without performing any allocations.
+    ///
+    /// Once the slice has been validated as utf-8, it is transmuted in-place and
+    /// returned as a '&str' instead of a '&[u8]'
+    ///
+    /// Returns None if the slice is not utf-8.
+    pub fn from_utf8<'a>(v: &'a [u8]) -> Option<&'a Str> {
+        if is_utf8(v) {
+            Some(unsafe { raw::from_utf8(v) })
+        } else { None }
+    }
+
+    // XXX Remove StrPrelude extension trait in favor of inherent methods
     /// Returns true if one string contains another
     ///
     /// # Arguments
