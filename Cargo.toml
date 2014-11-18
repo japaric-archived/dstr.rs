@@ -1,0 +1,5 @@
+[package]
+
+name = "dstr"
+version = "0.0.0"
+authors = ["Jorge Aparicio <japaricious@gmail.com>"]
